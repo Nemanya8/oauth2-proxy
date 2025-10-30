@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # Your internal application
+  internal-app:
+    image: nemanya21/hackm3:latest
+    container_name: internal-app
+    # ports:
+    #   - "8080:8080"  # Don't expose directly - only via oauth2-proxy
+    networks:
+      - internal
+    # Add your app's environment variables, volumes, etc.
+    # environment:
+    #   - APP_ENV=production
+
+  # OAuth2 Proxy
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:latest
+    container_name: oauth2-proxy
+    ports:
+      - "4180:4180"  # Exposed port for access
+    networks:
+      - internal
+    volumes:
+      - ./oauth2-proxy.cfg:/etc/oauth2-proxy.cfg
+    command:
+      - --config=/etc/oauth2-proxy.cfg
+    env_file:
+      - .env
+    depends_on:
+      - internal-app
+    restart: unless-stopped
+
+networks:
+  internal:
+    driver: bridge
